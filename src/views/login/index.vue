@@ -24,7 +24,7 @@
             <el-input placeholder="请输入验证码" prefix-icon="el-icon-key" v-model="loginForm.code"></el-input>
           </el-col>
           <el-col :span="7">
-            <img class="codeImg" src="../image/login_banner_ele.png" alt />
+            <img class="codeImg" @click="changeCode" :src="imgCode" alt />
           </el-col>
         </el-form-item>
         <el-form-item prop="agree" class="agree">
@@ -38,16 +38,23 @@
           <el-button type="primary" @click="doLogin" class="login-btn">登录</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" class="register-btn">注册</el-button>
+          <el-button type="primary" @click="showReg" class="register-btn">注册</el-button>
         </el-form-item>
       </el-form>
     </div>
     <img class="login_bg" src="../image/login_banner_ele.png" alt />
+    <!-- 注册对话框 -->
+    <reg ref="reg"></reg>
   </div>
 </template>
 <script>
+import reg from "./components/register.vue";
+import { login } from "@/api/login.js";
 export default {
   name: "login",
+  components: {
+    reg
+  },
   data() {
     return {
       loginForm: {
@@ -56,11 +63,12 @@ export default {
         code: "",
         agree: false
       },
+      imgCode: process.env.VUE_APP_URL + "/captcha?type=login&t=" + Date.now(),
       rules: {
         phone: [{ required: true, message: "请输入手机号码", trigger: "blur" }],
         password: [
           { required: true, message: "请输入密码", trigger: "blur" },
-          { min: 6, max: 12, message: "6-12位", trigger: "blur" }
+          { min: 6, max: 12, message: "密码在6-12位之间", trigger: "blur" }
         ],
         code: [
           { required: true, message: "请输入图形验证码", trigger: "blur" }
@@ -79,9 +87,22 @@ export default {
     doLogin() {
       this.$refs.loginForm.validate(val => {
         if (val) {
-          window.console.log(1111);
+          login({
+            phone: this.loginForm.phone,
+            password: this.loginForm.password,
+            code: this.loginForm.code
+          }).then(res => {
+            window.console.log(res);
+          });
         }
       });
+    },
+    changeCode() {
+      this.imgCode =
+        process.env.VUE_APP_URL + "/captcha?type=login&t=" + Date.now();
+    },
+    showReg() {
+      this.$refs.reg.dialogFormVisible = true;
     }
   }
 };
@@ -131,6 +152,7 @@ export default {
       width: 100%;
       height: 42px;
       vertical-align: middle;
+      cursor: pointer;
     }
   }
   .agree {
